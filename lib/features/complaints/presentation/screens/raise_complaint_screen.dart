@@ -4,6 +4,9 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:location/location.dart';
+import 'select_location_map_screen.dart';
 
 import '../../../../core/widgets/app_layout.dart';
 import '../../../../core/theme/page_transition.dart';
@@ -37,6 +40,7 @@ class _RaiseComplaintScreenState extends State<RaiseComplaintScreen> {
   String? selectedProductId;
   String selectedPriority = 'medium';
   bool productsLoading = true;
+  bool _locationLoading = false;
 
   @override
   void initState() {
@@ -170,6 +174,48 @@ class _RaiseComplaintScreenState extends State<RaiseComplaintScreen> {
     });
   }
 
+  Future<void> _getCurrentLocation() async {
+    setState(() => _locationLoading = true);
+    try {
+      final loc = Location();
+      bool serviceEnabled = await loc.serviceEnabled();
+      if (!serviceEnabled) {
+        serviceEnabled = await loc.requestService();
+        if (!serviceEnabled) throw Exception("Location service disabled");
+      }
+
+      PermissionStatus permissionGranted = await loc.hasPermission();
+      if (permissionGranted == PermissionStatus.denied) {
+        permissionGranted = await loc.requestPermission();
+        if (permissionGranted != PermissionStatus.granted) throw Exception("Location permission denied");
+      }
+
+      final data = await loc.getLocation();
+      if (data.latitude != null && data.longitude != null) {
+        final addressStr = "GPS: ${data.latitude!.toStringAsFixed(6)}, ${data.longitude!.toStringAsFixed(6)}";
+        setState(() {
+          addressController.text = addressStr;
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Location fetched successfully! 📍"), backgroundColor: Colors.green),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint("Error getting current location: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Could not fetch location: $e"), backgroundColor: Colors.redAccent),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _locationLoading = false);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return AppLayout(
@@ -264,15 +310,113 @@ class _RaiseComplaintScreenState extends State<RaiseComplaintScreen> {
               ),
             ),
 
-            // Address
+            // Address Layout (Manual, GPS, Map Select options)
             FadeInWidget(
               delay: 300,
-              child: _inputField(
-                label: "Address",
-                controller: addressController,
-                icon: Icons.location_on,
-                maxLines: 2,
-                isOptional: true,
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 18),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(22),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.03),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    )
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          "Address Info",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xff0D47A1),
+                            fontSize: 15,
+                          ),
+                        ),
+                        Text(
+                          "Optional",
+                          style: TextStyle(
+                            color: Colors.grey[400],
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: addressController,
+                      maxLines: 2,
+                      decoration: const InputDecoration(
+                        border: InputBorder.none,
+                        hintText: "Enter your address or locate using GPS...",
+                        prefixIcon: Icon(Icons.location_on, color: Colors.blue),
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    ),
+                    const Divider(height: 20),
+                    Row(
+                      children: [
+                        // GPS Button
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: Colors.blue),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                            ),
+                            icon: _locationLoading
+                                ? const SizedBox(
+                                    width: 14,
+                                    height: 14,
+                                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.blue),
+                                  )
+                                : const Icon(Icons.gps_fixed, size: 16),
+                            label: const Text("Use GPS", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                            onPressed: _locationLoading ? null : _getCurrentLocation,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        // Map Select Button
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: Colors.blue),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                            ),
+                            icon: const Icon(Icons.map_outlined, size: 16),
+                            label: const Text("Select on Map", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                            onPressed: () async {
+                              final LatLng? result = await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const SelectLocationMapScreen(),
+                                ),
+                              );
+                              if (result != null) {
+                                setState(() {
+                                  addressController.text = "GPS: ${result.latitude.toStringAsFixed(6)}, ${result.longitude.toStringAsFixed(6)}";
+                                });
+                              }
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
 
