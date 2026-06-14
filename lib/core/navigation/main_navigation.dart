@@ -73,9 +73,6 @@ class _MainNavigationState extends State<MainNavigation> {
                 index: 1,
               ),
 
-              // Center Primary Action: Raise Complaint
-              _buildRaiseComplaintButton(),
-
               // History
               _navItem(
                 icon: Icons.history_rounded,
@@ -91,48 +88,6 @@ class _MainNavigationState extends State<MainNavigation> {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  // ✅ Center floating-style Action Button
-  Widget _buildRaiseComplaintButton() {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          FadePageRoute(
-            page: const RaiseComplaintScreen(),
-          ),
-        ).then((_) {
-          // ✅ Refresh UI when returning
-          setState(() {});
-        });
-      },
-      child: Container(
-        width: 52,
-        height: 52,
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xff1976D2), Color(0xff0D47A1)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xff0D47A1).withOpacity(0.35),
-              blurRadius: 12,
-              spreadRadius: 1,
-              offset: const Offset(0, 5),
-            ),
-          ],
-        ),
-        child: const Icon(
-          Icons.add_rounded,
-          color: Colors.white,
-          size: 28,
         ),
       ),
     );
