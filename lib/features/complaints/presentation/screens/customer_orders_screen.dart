@@ -266,18 +266,10 @@ For service requests, contact support.
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xffF6F8FC),
-      appBar: AppBar(
-        title: const Text(
-          "My Orders",
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-        ),
-        centerTitle: true,
-        backgroundColor: const Color(0xff0D47A1),
-        elevation: 0,
-      ),
-      body: isLoading
+    return AppLayout(
+      title: "My Orders",
+      showBack: Navigator.canPop(context),
+      child: isLoading
           ? const Center(child: CircularProgressIndicator())
           : Padding(
               padding: const EdgeInsets.all(18.0),

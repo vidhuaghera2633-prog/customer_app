@@ -11,6 +11,7 @@ import 'complaint_details_screen.dart';
 import 'complaints_history_screen.dart';
 import 'raise_complaint_screen.dart';
 import 'complaints_list_screen.dart';
+import 'notifications_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -82,10 +83,60 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ],
                   ),
-                  const CircleAvatar(
-                    radius: 25,
-                    backgroundColor: Color(0xffE3F2FD),
-                    child: Icon(Icons.person, color: Colors.blue),
+                  Row(
+                    children: [
+                      // ✅ Premium Notification Bell Icon
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            FadePageRoute(
+                              page: const NotificationsScreen(),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: const BoxDecoration(
+                            color: Color(0xffE3F2FD),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              const Icon(
+                                Icons.notifications_rounded,
+                                color: Color(0xff0D47A1),
+                                size: 24,
+                              ),
+                              Positioned(
+                                top: -1,
+                                right: -1,
+                                child: Container(
+                                  width: 8,
+                                  height: 8,
+                                  decoration: BoxDecoration(
+                                    color: Colors.redAccent,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: Colors.white,
+                                      width: 1.5,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      // ✅ Profile Avatar
+                      const CircleAvatar(
+                        radius: 22,
+                        backgroundColor: Color(0xffE3F2FD),
+                        child: Icon(Icons.person, color: Color(0xff0D47A1)),
+                      ),
+                    ],
                   ),
                 ],
               ),
