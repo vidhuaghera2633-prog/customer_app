@@ -198,9 +198,6 @@ class _ComplaintPreviewScreenState extends State<ComplaintPreviewScreen> {
             // ✅ Product Info
             _infoTile(Icons.devices, "Selected Product", widget.productName),
 
-            // ✅ Priority Info
-            _infoTile(Icons.priority_high, "Priority Level", widget.priority.toUpperCase()),
-
             // ✅ Contact
             _infoTile(Icons.phone, "Contact Number",
                 widget.contact.isEmpty ? "Not Provided" : widget.contact),

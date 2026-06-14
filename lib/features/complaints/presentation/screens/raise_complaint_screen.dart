@@ -47,6 +47,8 @@ class _RaiseComplaintScreenState extends State<RaiseComplaintScreen> {
   Future<void> _fetchProducts() async {
     try {
       final user = FirebaseAuth.instance.currentUser;
+      List<Map<String, dynamic>> loadedProducts = [];
+
       if (user != null) {
         final userDoc = await FirebaseFirestore.instance
             .collection('users_id')
@@ -61,22 +63,38 @@ class _RaiseComplaintScreenState extends State<RaiseComplaintScreen> {
                 .where('customer_id', isEqualTo: customerId)
                 .get();
 
-            setState(() {
-              products = productSnapshot.docs.map((doc) => {
-                'id': doc.id,
-                'name': doc.data()['product_name'] ?? 'Product',
-                'serial': doc.data()['serial_number'] ?? '',
-              }).toList();
-              
-              if (products.isNotEmpty) {
-                selectedProductId = products.first['id'];
-              }
-            });
+            loadedProducts = productSnapshot.docs.map((doc) => {
+              'id': doc.id,
+              'name': doc.data()['product_name'] ?? 'Product',
+              'serial': doc.data()['serial_number'] ?? '',
+            }).toList();
           }
         }
       }
+
+      // Add Solar products
+      loadedProducts.addAll([
+        {'id': 'solar_panel', 'name': 'Solar Panel', 'serial': 'SLR-PL-9092'},
+        {'id': 'solar_water_heater', 'name': 'Solar Water Heater', 'serial': 'SLR-WH-4081'},
+        {'id': 'solar_inverter', 'name': 'Solar Inverter', 'serial': 'SLR-INV-1025'},
+      ]);
+
+      setState(() {
+        products = loadedProducts;
+        if (products.isNotEmpty) {
+          selectedProductId = products.first['id'];
+        }
+      });
     } catch (e) {
       debugPrint("Error loading products: $e");
+      setState(() {
+        products = [
+          {'id': 'solar_panel', 'name': 'Solar Panel', 'serial': 'SLR-PL-9092'},
+          {'id': 'solar_water_heater', 'name': 'Solar Water Heater', 'serial': 'SLR-WH-4081'},
+          {'id': 'solar_inverter', 'name': 'Solar Inverter', 'serial': 'SLR-INV-1025'},
+        ];
+        selectedProductId = 'solar_panel';
+      });
     } finally {
       if (mounted) {
         setState(() {
@@ -233,46 +251,7 @@ class _RaiseComplaintScreenState extends State<RaiseComplaintScreen> {
                         ),
             ),
 
-            // Priority Dropdown
-            FadeInWidget(
-              delay: 200,
-              child: Container(
-                margin: const EdgeInsets.only(bottom: 18),
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(18),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.03),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
-                    )
-                  ],
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButtonFormField<String>(
-                    value: selectedPriority,
-                    decoration: const InputDecoration(
-                      labelText: 'Priority Level',
-                      prefixIcon: Icon(Icons.priority_high, color: Colors.blue),
-                      border: InputBorder.none,
-                    ),
-                    items: const [
-                      DropdownMenuItem(value: 'low', child: Text('Low')),
-                      DropdownMenuItem(value: 'medium', child: Text('Medium')),
-                      DropdownMenuItem(value: 'high', child: Text('High')),
-                      DropdownMenuItem(value: 'critical', child: Text('Critical')),
-                    ],
-                    onChanged: (val) {
-                      setState(() {
-                        selectedPriority = val ?? 'medium';
-                      });
-                    },
-                  ),
-                ),
-              ),
-            ),
+
 
             // Contact Number
             FadeInWidget(

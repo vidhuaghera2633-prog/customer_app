@@ -27,154 +27,134 @@ class _ComplaintHistoryScreenState extends State<ComplaintHistoryScreen> {
     return AppLayout(
       title: "Activity History",
       showBack: Navigator.canPop(context),
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        floatingActionButton: Padding(
-          padding: const EdgeInsets.only(bottom: 80),
-          child: FloatingActionButton(
-            backgroundColor: const Color(0xff0D47A1),
-            shape: const CircleBorder(),
-            elevation: 6,
-            onPressed: () {
-              Navigator.push(
-                context,
-                FadePageRoute(page: const RaiseComplaintScreen()),
-              ).then((_) {
-                if (mounted) setState(() {});
-              });
-            },
-            child: const Icon(Icons.add, color: Colors.white, size: 28),
-          ),
-        ),
-        body: Column(
-          children: [
-            // ✅ Premium Search Bar
-            Padding(
-              padding: const EdgeInsets.fromLTRB(18, 10, 18, 20),
-              child: FadeInWidget(
-                delay: 100,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(18),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.04),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: TextField(
-                    controller: _searchController,
-                    onChanged: (value) {
-                      setState(() {
-                        _searchQuery = value.toLowerCase();
-                      });
-                    },
-                    decoration: InputDecoration(
-                      hintText: "Search by title or details...",
-                      hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
-                      prefixIcon: const Icon(Icons.search, color: Colors.blue),
-                      suffixIcon: _searchQuery.isNotEmpty 
-                        ? IconButton(
-                            icon: const Icon(Icons.clear, size: 20),
-                            onPressed: () {
-                              _searchController.clear();
-                              setState(() { _searchQuery = ""; });
-                            },
-                          )
-                        : null,
-                      border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 15),
+      child: Column(
+        children: [
+          // ✅ Premium Search Bar
+          Padding(
+            padding: const EdgeInsets.fromLTRB(18, 10, 18, 20),
+            child: FadeInWidget(
+              delay: 100,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(18),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.04),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
                     ),
+                  ],
+                ),
+                child: TextField(
+                  controller: _searchController,
+                  onChanged: (value) {
+                    setState(() {
+                      _searchQuery = value.toLowerCase();
+                    });
+                  },
+                  decoration: InputDecoration(
+                    hintText: "Search by title or details...",
+                    hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
+                    prefixIcon: const Icon(Icons.search, color: Colors.blue),
+                    suffixIcon: _searchQuery.isNotEmpty 
+                      ? IconButton(
+                          icon: const Icon(Icons.clear, size: 20),
+                          onPressed: () {
+                            _searchController.clear();
+                            setState(() { _searchQuery = ""; });
+                          },
+                        )
+                      : null,
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 15),
                   ),
                 ),
               ),
             ),
+          ),
 
-            // ✅ History List
-            Expanded(
-              child: StreamBuilder<QuerySnapshot>(
-                stream: FirebaseFirestore.instance
-                    .collection('complaints')
-                    .where('userId', isEqualTo: user?.uid)
-                    .snapshots(),
-                builder: (context, snapshot) {
-                  if (snapshot.hasError) {
-                    return Center(child: Text("Error: ${snapshot.error}"));
-                  }
+          // ✅ History List
+          Expanded(
+            child: StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('complaints')
+                  .where('userId', isEqualTo: user?.uid)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return Center(child: Text("Error: ${snapshot.error}"));
+                }
 
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-                  var docs = snapshot.data?.docs ?? [];
-                  
-                  // Manual Filter & Sort
-                  var filteredDocs = docs.where((doc) {
+                var docs = snapshot.data?.docs ?? [];
+                
+                // Manual Filter & Sort
+                var filteredDocs = docs.where((doc) {
+                  final data = doc.data() as Map<String, dynamic>;
+                  final title = (data['title'] ?? "").toString().toLowerCase();
+                  final details = (data['details'] ?? "").toString().toLowerCase();
+                  return title.contains(_searchQuery) || details.contains(_searchQuery);
+                }).toList();
+
+                filteredDocs.sort((a, b) {
+                  Timestamp t1 = (a.data() as Map)['createdAt'] ?? (a.data() as Map)['complaintDate'] ?? Timestamp.now();
+                  Timestamp t2 = (b.data() as Map)['createdAt'] ?? (b.data() as Map)['complaintDate'] ?? Timestamp.now();
+                  return t2.compareTo(t1);
+                });
+
+                if (filteredDocs.isEmpty) {
+                  return FadeInWidget(
+                    delay: 200,
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.history_toggle_off, size: 80, color: Colors.grey[300]),
+                          const SizedBox(height: 16),
+                          Text(
+                            _searchQuery.isEmpty ? "No history yet" : "No matches found",
+                            style: const TextStyle(color: Colors.grey, fontSize: 16),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+
+                return ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 18),
+                  itemCount: filteredDocs.length,
+                  itemBuilder: (context, index) {
+                    final doc = filteredDocs[index];
                     final data = doc.data() as Map<String, dynamic>;
-                    final title = (data['title'] ?? "").toString().toLowerCase();
-                    final details = (data['details'] ?? "").toString().toLowerCase();
-                    return title.contains(_searchQuery) || details.contains(_searchQuery);
-                  }).toList();
+                    
+                    DateTime? date;
+                    if (data['createdAt'] != null) {
+                      date = (data['createdAt'] as Timestamp).toDate();
+                    } else if (data['complaintDate'] != null) {
+                      date = (data['complaintDate'] as Timestamp).toDate();
+                    }
 
-                  filteredDocs.sort((a, b) {
-                    Timestamp t1 = (a.data() as Map)['createdAt'] ?? (a.data() as Map)['complaintDate'] ?? Timestamp.now();
-                    Timestamp t2 = (b.data() as Map)['createdAt'] ?? (b.data() as Map)['complaintDate'] ?? Timestamp.now();
-                    return t2.compareTo(t1);
-                  });
-
-                  if (filteredDocs.isEmpty) {
                     return FadeInWidget(
-                      delay: 200,
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.history_toggle_off, size: 80, color: Colors.grey[300]),
-                            const SizedBox(height: 16),
-                            Text(
-                              _searchQuery.isEmpty ? "No history yet" : "No matches found",
-                              style: const TextStyle(color: Colors.grey, fontSize: 16),
-                            ),
-                          ],
-                        ),
+                      delay: 100 + (index * 50), // Staggered animation
+                      child: _historyItem(
+                        id: doc.id,
+                        title: data['title'] ?? "Complaint",
+                        status: data['status'] ?? "Pending",
+                        date: date != null ? DateFormat("dd MMM yyyy, hh:mm a").format(date) : "Recently",
+                        details: data['details'] ?? "",
                       ),
                     );
-                  }
-
-                  return ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 18),
-                    itemCount: filteredDocs.length,
-                    itemBuilder: (context, index) {
-                      final doc = filteredDocs[index];
-                      final data = doc.data() as Map<String, dynamic>;
-                      
-                      DateTime? date;
-                      if (data['createdAt'] != null) {
-                        date = (data['createdAt'] as Timestamp).toDate();
-                      } else if (data['complaintDate'] != null) {
-                        date = (data['complaintDate'] as Timestamp).toDate();
-                      }
-
-                      return FadeInWidget(
-                        delay: 100 + (index * 50), // Staggered animation
-                        child: _historyItem(
-                          id: doc.id,
-                          title: data['title'] ?? "Complaint",
-                          status: data['status'] ?? "Pending",
-                          date: date != null ? DateFormat("dd MMM yyyy, hh:mm a").format(date) : "Recently",
-                          details: data['details'] ?? "",
-                        ),
-                      );
-                    },
-                  );
-                },
-              ),
+                  },
+                );
+              },
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
