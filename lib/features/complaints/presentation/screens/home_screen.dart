@@ -168,11 +168,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   return Row(
                     children: [
-                      _statusCard("Pending", pending, Colors.orange),
+                      _statusCard("Pending", pending, Colors.orange, Icons.access_time_filled_rounded),
                       const SizedBox(width: 12),
-                      _statusCard("Active", active, Colors.blue),
+                      _statusCard("Active", active, Colors.blue, Icons.sync_rounded),
                       const SizedBox(width: 12),
-                      _statusCard("Done", completed, Colors.green),
+                      _statusCard("Done", completed, Colors.green, Icons.check_circle_rounded),
                     ],
                   );
                 },
@@ -186,61 +186,77 @@ class _HomeScreenState extends State<HomeScreen> {
               delay: 300,
               child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(22),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                     colors: [Color(0xff0D47A1), Color(0xff1976D2)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
-                  borderRadius: BorderRadius.circular(24),
+                  borderRadius: BorderRadius.circular(28),
                   boxShadow: [
                     BoxShadow(
                       color: const Color(0xff0D47A1).withOpacity(0.3),
-                      blurRadius: 15,
-                      offset: const Offset(0, 8),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
                     ),
                   ],
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Row(
                   children: [
-                    const Text(
-                      "Facing an issue?",
-                      style: TextStyle(
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            "Facing an issue?",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 19,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          const Text(
+                            "Report any problem and our technicians will resolve it quickly.",
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 13,
+                              height: 1.35,
+                            ),
+                          ),
+                          const SizedBox(height: 18),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              foregroundColor: const Color(0xff0D47A1),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              elevation: 0,
+                              padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
+                            ),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                FadePageRoute(page: const RaiseComplaintScreen()),
+                              );
+                            },
+                            child: const Text(
+                              "RAISE COMPLAINT",
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Opacity(
+                      opacity: 0.18,
+                      child: const Icon(
+                        Icons.support_agent_rounded,
                         color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      "Report any problem and our technicians will resolve it quickly.",
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 13,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: Colors.blue[800],
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 0,
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                      ),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          FadePageRoute(page: const RaiseComplaintScreen()),
-                        );
-                      },
-                      child: const Text(
-                        "RAISE COMPLAINT",
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                        size: 76,
                       ),
                     ),
                   ],
@@ -342,38 +358,48 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _statusCard(String label, int count, Color color) {
+  Widget _statusCard(String label, int count, Color color, IconData icon) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: color.withOpacity(0.12),
+            width: 1.5,
+          ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.03),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+              color: color.withOpacity(0.04),
+              blurRadius: 16,
+              offset: const Offset(0, 8),
             ),
           ],
         ),
         child: Column(
           children: [
+            CircleAvatar(
+              radius: 18,
+              backgroundColor: color.withOpacity(0.1),
+              child: Icon(icon, color: color, size: 16),
+            ),
+            const SizedBox(height: 8),
             Text(
               count.toString(),
               style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
+                fontSize: 24,
+                fontWeight: FontWeight.w800,
                 color: color,
               ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 2),
             Text(
               label,
               style: TextStyle(
                 fontSize: 12,
-                color: Colors.grey[600],
-                fontWeight: FontWeight.w500,
+                color: Colors.grey[700],
+                fontWeight: FontWeight.w600,
               ),
             ),
           ],
@@ -567,15 +593,35 @@ class _HomeScreenState extends State<HomeScreen> {
                         final productName = productData['product_name'] ?? 'Product';
                         
                         return Container(
-                          margin: const EdgeInsets.only(bottom: 10),
+                          margin: const EdgeInsets.only(bottom: 12),
                           decoration: BoxDecoration(
-                            color: const Color(0xffF6F8FC),
-                            borderRadius: BorderRadius.circular(16),
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(
+                              color: Colors.grey.shade100,
+                              width: 1.5,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.015),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
                           ),
                           child: ListTile(
-                            leading: const CircleAvatar(
-                              backgroundColor: Color(0xffE3F2FD),
-                              child: Icon(Icons.shopping_bag, color: Color(0xff0D47A1)),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                            leading: Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: const BoxDecoration(
+                                color: Color(0xffE3F2FD),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.shopping_bag_rounded,
+                                color: Color(0xff0D47A1),
+                                size: 20,
+                              ),
                             ),
                             title: Text(
                               productName,
@@ -585,7 +631,18 @@ class _HomeScreenState extends State<HomeScreen> {
                                 color: Color(0xff263238),
                               ),
                             ),
-                            trailing: const Icon(Icons.chevron_right, color: Color(0xff0D47A1)),
+                            trailing: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: const Color(0xff0D47A1).withOpacity(0.08),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.chevron_right_rounded,
+                                color: Color(0xff0D47A1),
+                                size: 18,
+                              ),
+                            ),
                             onTap: () {
                               _showOrderDetailsDialog(
                                 context,

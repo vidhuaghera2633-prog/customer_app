@@ -93,7 +93,7 @@ class _MainNavigationState extends State<MainNavigation> {
     );
   }
 
-  // ✅ Bottom Nav Item Widget with active indicator
+  // ✅ Bottom Nav Item Widget with capsule active indicator
   Widget _navItem({
     required IconData icon,
     required String label,
@@ -101,7 +101,7 @@ class _MainNavigationState extends State<MainNavigation> {
   }) {
     final bool active = selectedIndex == index;
     const Color activeColor = Color(0xff0D47A1);
-    final Color inactiveColor = Colors.grey.shade400;
+    final Color inactiveColor = Colors.grey;
 
     return Expanded(
       child: GestureDetector(
@@ -114,28 +114,26 @@ class _MainNavigationState extends State<MainNavigation> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              icon,
-              color: active ? activeColor : inactiveColor,
-              size: 24,
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 250),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              decoration: BoxDecoration(
+                color: active ? activeColor.withOpacity(0.08) : Colors.transparent,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Icon(
+                icon,
+                color: active ? activeColor : inactiveColor,
+                size: 22,
+              ),
             ),
-            const SizedBox(height: 3),
+            const SizedBox(height: 4),
             Text(
               label,
               style: TextStyle(
-                fontSize: 11,
+                fontSize: 10,
                 fontWeight: active ? FontWeight.bold : FontWeight.w500,
                 color: active ? activeColor : inactiveColor,
-              ),
-            ),
-            const SizedBox(height: 3),
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              width: active ? 16 : 0,
-              height: 3,
-              decoration: BoxDecoration(
-                color: activeColor,
-                borderRadius: BorderRadius.circular(1.5),
               ),
             ),
           ],
